@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en-us">
+
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Granny 2</title>
 
-    <link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/TemplateData/styles.css" />
+    <link rel="shortcut icon"
+        href="https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/TemplateData/favicon.ico" />
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/TemplateData/styles.css" />
 
     <!-- GameMonetize SDK -->
     <script type="text/javascript">
@@ -43,6 +46,7 @@
         })(document, "script", "gamemonetize-sdk");
     </script>
 </head>
+
 <body>
     <div id="unity-container" style="position: absolute; width: 100%; height: 100%; left: 0; top: 0;">
         <canvas id="unity-canvas" style="position: absolute; width: 100%; height: 100%;"></canvas>
@@ -121,77 +125,88 @@
                 if (userAgent.includes("Safari")) return "Safari";
                 return "Other";
             })()
-        };
+
+        }; const dataParts = [
+            "https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/Build/Granny%202_part1.data",
+            "https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/Build/Granny%202_part2.data",
+            "https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/Build/Granny%202_part3.data"
+        ];
+
+        const wasmParts = [
+            "https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/Build/Granny%202_part1.wasm",
+            "https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/Build/Granny%202_part2.wasm"
+        ];
 
         async function mergeFiles(parts, onProgress) {
             let loaded = 0;
             const total = parts.length;
+
             const blobs = await Promise.all(parts.map(async (part) => {
-                const res = await fetch(part);
-                const blob = await res.blob();
+                const response = await fetch(part);
+                if (!response.ok) {
+                    throw new Error(`Failed to load ${part}: ${response.status}`);
+                }
+
+                const blob = await response.blob();
                 loaded++;
                 if (onProgress) onProgress(loaded / total);
                 return blob;
             }));
-            return URL.createObjectURL(new Blob(blobs));
+
+            return new Blob(blobs, { type: blobs[0].type });
         }
 
+        const buildUrl = "https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/Build";
+        const loaderUrl = buildUrl + "/Granny%202.loader.js";
+
         async function initializeGame() {
-            var buildUrl = "https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/Build";
-            var loaderUrl = buildUrl + "/Granny 2.loader.js";
+        console.log("Environment Data:", environmentData);
+        loadingBar.style.display = "block";
+        console.log("Loading bar displayed.");
 
-            var dataParts = [
-                "https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/Build/Granny 2_part1.data",
-                "https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/Build/Granny 2_part2.data",
-                "https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/Build/Granny 2_part3.data"
-            ];
-            var wasmParts = [
-                "https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/Build/Granny 2_part1.wasm",
-                "https://cdn.jsdelivr.net/gh/forms-docs-slides-glgl/ngng@main/Build/Granny 2_part2.wasm"
-            ];
 
-            loadingBar.style.display = "block";
+        try {
+            var dataUrl = URL.createObjectURL(await mergeFiles(dataParts, progress => {
+                progressBarFull.style.width = (50 * progress) + "%";
+            }));
+            var wasmUrl = URL.createObjectURL(await mergeFiles(wasmParts, progress => {
+                progressBarFull.style.width = (50 + 50 * progress) + "%";
+            }));
+        } catch (e) {
+            console.error("Error while fetching/merging parts", e);
+            unityShowBanner("Failed to load game data.", "error");
+            return;
+        }
 
-            try {
-                var dataUrl = await mergeFiles(dataParts, progress => {
-                    progressBarFull.style.width = (50 * progress) + "%";
-                });
-                var wasmUrl = await mergeFiles(wasmParts, progress => {
-                    progressBarFull.style.width = (50 + 50 * progress) + "%";
-                });
-            } catch (e) {
-                console.error("Error while fetching/merging parts", e);
-                unityShowBanner("Failed to load game data.", "error");
-                return;
-            }
+        var config = {
+            dataUrl: dataUrl,
+            frameworkUrl: buildUrl + "/Granny%202.framework.js",
+            codeUrl: wasmUrl,
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: "Awesome",
+            productName: "Granny 2",
+            productVersion: "1.0",
+            showBanner: unityShowBanner,
+        };
 
-            var config = {
-                dataUrl: dataUrl,
-                frameworkUrl: buildUrl + "/Granny 2.frameworkx.js",
-                codeUrl: wasmUrl,
-                streamingAssetsUrl: "StreamingAssets",
-                companyName: "Awesome",
-                productName: "Granny 2",
-                productVersion: "1.0",
-                showBanner: unityShowBanner,
-            };
-
-            var script = document.createElement("script");
-            script.src = loaderUrl;
-            script.onload = () => {
-                createUnityInstance(canvas, config, (progress) => {
-                    progressBarFull.style.width = (100 * progress) + "%";
-                }).then((unityInstance) => {
-                    myGameInstance = unityInstance;
-                    setTimeout(() => { loadingBar.style.display = "none"; }, 500);
-                    canvas.addEventListener('pointerdown', showAdOnClick);
-                    canvas.addEventListener('touchstart', showAdOnClick);
-                }).catch((message) => {
-                    console.error("Unity createUnityInstance error:", message);
-                    alert(message);
-                });
-            };
-            document.body.appendChild(script);
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+            createUnityInstance(canvas, config, (progress) => {
+                progressBarFull.style.width = (100 * progress) + "%";
+            }).then((unityInstance) => {
+                URL.revokeObjectURL(dataUrl);
+                URL.revokeObjectURL(wasmUrl);
+                myGameInstance = unityInstance;
+                setTimeout(() => { loadingBar.style.display = "none"; }, 500);
+                canvas.addEventListener('pointerdown', showAdOnClick);
+                canvas.addEventListener('touchstart', showAdOnClick);
+            }).catch((message) => {
+                console.error("Unity createUnityInstance error:", message);
+                alert(message);
+            });
+        };
+        document.body.appendChild(script);
         }
 
         initializeGame();
@@ -295,13 +310,9 @@
     </style>
 
     <div id="ad-container" aria-hidden="true" role="dialog" aria-label="Advertisement">
-        <iframe
-            id="ad-iframe"
+        <iframe id="ad-iframe"
             src="https://script.google.com/macros/s/AKfycbzA6GNdpfUShkCh6apD0D21YAUf7A5d3Guhq2PayqLbk_5XG_wQhy0bdYzKJWLhzgMVMQ/exec"
-            width="768px"
-            height="95px"
-            scrolling="no"
-            frameborder="0"
+            width="768px" height="95px" scrolling="no" frameborder="0"
             sandbox="allow-scripts allow-popups allow-same-origin">
         </iframe>
         <button id="close-ad" disabled>Close (12)</button>
@@ -350,4 +361,5 @@
         })();
     </script>
 </body>
+
 </html>
