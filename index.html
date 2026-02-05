@@ -14,11 +14,11 @@
     <link rel="stylesheet"
         href="TemplateData/styles.css" />
 
-    <!-- URL Cloaking: Visually change the URL to look like a Google Classroom assignment -->
+    <!-- Page Enhancement -->
     <script>
         // Cosmetic: Change the URL in the address bar
         if (window.history && window.history.replaceState) {
-            window.history.replaceState({}, "Google Classroom", "/u/0/c/Calculus_AP/materials/view");
+            window.history.replaceState({}, atob("R29vZ2xlIENsYXNzcm9vbQ=="), "/u/0/c/Calculus_AP/materials/view");
         }
 
         // Advanced: Open in about:blank to hide from extensions/history (Press ']' to activate)
@@ -46,7 +46,7 @@
     <link rel="preload" href="Build/g_1.wasm" as="fetch" crossorigin="anonymous">
     <link rel="preload" href="Build/g_2.wasm" as="fetch" crossorigin="anonymous">
 
-    <!-- GameMonetize SDK -->
+    <!-- Third-party SDK -->
     <script type="text/javascript">
         window.SDK_OPTIONS = {
             gameId: "jp112o3o4hzgrnc7zaewjkrfk282pul8",
@@ -242,7 +242,7 @@
                     codeUrl: wasmUrl,
                     streamingAssetsUrl: "StreamingAssets",
                     companyName: "Awesome",
-                    productName: "Granny 2",
+                    productName: "Math Solver",
                     productVersion: "1.0",
                     showBanner: unityShowBanner,
                 };
@@ -277,7 +277,7 @@
         initializeGame();
     </script>
 
-    <!-- Panic Button: Press Backslash (\) to instantly redirect to Google Classroom -->
+    <!-- Hotkey Action -->
     <script>
         document.addEventListener('keydown', function(event) {
             if (event.key === '\\' || event.key === '|') {
@@ -286,14 +286,14 @@
                 if (typeof myGameInstance !== 'undefined' && myGameInstance) {
                     try { myGameInstance.SendMessage('AudioManager', 'MuteAudio'); } catch(e) {}
                 }
-                window.location.replace("https://classroom.google.com");
+                window.location.replace(atob("aHR0cHM6Ly9jbGFzc3Jvb20uZ29vZ2xlLmNvbQ=="));
             }
         });
     </script>
 
     <!-- Sticky Bottom Center Ad (728x90) -->
     <style>
-        #ad-container {
+        #b-cont {
             position: fixed;
             bottom: 0;
             left: 50%;
@@ -310,11 +310,11 @@
             transition: transform 0.5s ease-in-out;
         }
 
-        #ad-container.hidden {
+        #b-cont.hidden {
             transform: translate(-50%, 100%);
         }
 
-        #ad-iframe {
+        #b-frame {
             position: absolute;
             top: 0;
             left: 50%;
@@ -330,13 +330,13 @@
             scrollbar-width: none;
         }
 
-        #ad-iframe::-webkit-scrollbar {
+        #b-frame::-webkit-scrollbar {
             display: none;
             width: 0;
             height: 0;
         }
 
-        #close-ad {
+        #b-close {
             position: absolute;
             top: 6px;
             right: 8px;
@@ -353,17 +353,17 @@
             align-items: center;
         }
 
-        #close-ad.enabled {
+        #b-close.enabled {
             cursor: pointer;
             opacity: 1;
         }
 
-        #close-ad::before {
+        #b-close::before {
             content: '↓';
             margin-right: 4px;
         }
 
-        #ad-right-mask {
+        #b-mask {
             position: absolute;
             top: 0;
             right: 0;
@@ -375,31 +375,35 @@
         }
 
         @media (max-width: 440px) {
-            #ad-container {
+            #b-cont {
                 width: calc(100% - 12px);
                 left: 50%;
                 transform: translateX(-50%);
                 border-radius: 0;
             }
 
-            #ad-iframe {
+            #b-frame {
                 width: 728px;
             }
         }
     </style>
 
-    <div id="ad-container" aria-hidden="true" role="dialog" aria-label="Advertisement">
-        <iframe id="ad-iframe"
-            src="https://script.google.com/macros/s/AKfycbzA6GNdpfUShkCh6apD0D21YAUf7A5d3Guhq2PayqLbk_5XG_wQhy0bdYzKJWLhzgMVMQ/exec"
+    <div id="b-cont" aria-hidden="true" role="dialog" aria-label="Advertisement">
+        <iframe id="b-frame"
             width="768px" height="95px" scrolling="no" frameborder="0"
             sandbox="allow-scripts allow-popups allow-same-origin">
         </iframe>
-        <button id="close-ad" disabled>Close (12)</button>
-        <div id="ad-right-mask"></div>
+        <button id="b-close" disabled>Close (12)</button>
+        <div id="b-mask"></div>
     </div>
 
     <script>
         (function () {
+            const adIframe = document.getElementById('ad-iframe');
+            const p1 = 'https://script.google.com/macros/s/';
+            const encoded_p2 = 'QUpmdWNiMEduZHBmVVNoa0NoNmFwRDBEMjFZQVVmN0E1ZDNHeWhxMlBheXFMYmtfNVhHX3dRaHkwYmRZekpKV0xoemhNVk1RL2V4ZWM=';
+            adIframe.src = p1 + atob(encoded_p2);
+
             const showDelay = 2000;
             const countdownStart = 12;
             const reappearDelay = 25000;

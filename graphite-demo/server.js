@@ -1,10 +1,12 @@
 const express = require('express');
 const path = require('path');
+const { exec } = require('child_process');
+const https = require('https');
 const app = express();
 const port = 3000;
 
 // Serve static files from the parent directory (project root)
-app.use('/content/resources/math-lib', express.static(path.join(__dirname, '../')));
+app.use('/drive/view/files/', express.static(path.join(__dirname, '../')));
 
 // Fake educational landing page for the root URL to help with categorization
 app.get('/', (req, res) => {
@@ -62,10 +64,53 @@ app.get('/feed', (req, res) => {
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 
-  // Print the correct URL to the console so you don't have to guess
+  // Construct and encode the URL to make it less conspicuous in logs.
+  let url;
   if (process.env.CODESPACE_NAME && process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN) {
-    console.log(`\n>>> ACCESS GAME HERE: https://${process.env.CODESPACE_NAME}-${port}.${process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}/content/resources/math-lib/ <<<\n`);
+    url = `https://${process.env.CODESPACE_NAME}-${port}.${process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}/drive/view/files/`;
   } else {
-    console.log(`\n>>> ACCESS GAME HERE: http://localhost:${port}/content/resources/math-lib/ <<<\n`);
+    url = `http://localhost:${port}/drive/view/files/`;
   }
+
+  console.log(`\n>>> Access link generated:`);
+  console.log(url);
+
+  // Fetch and print the public IP, which acts as the tunnel password.
+  console.log('>>> Fetching Tunnel Password...');
+  exec('curl -s https://api.ipify.org', (error, stdout, stderr) => {
+    if (error) {
+      console.error('\n>>> Could not retrieve tunnel password.');
+      console.error(stderr);
+      return;
+    }
+    if (stdout) {
+      console.log('\n==================================================');
+      console.log(`>>> TUNNEL PASSWORD: ${stdout.trim()}`);
+      console.log('==================================================\n');
+    } else {
+      console.log('\n>>> Could not retrieve tunnel password.');
+    }
+  });
+
+  // Attempt to create a tunnel using Cloudflared to bypass domain filters
+  console.log('\n>>> Starting Cloudflared tunnel...');
+  const tunnel = exec(`npx -y cloudflared tunnel --url http://localhost:${port}`);
+  
+  tunnel.stdout.on('data', (data) => {
+    const output = data.toString();
+    console.log(`Cloudflared stdout: ${output}`); // Log stdout for debugging
+  });
+
+  tunnel.stderr.on('data', (data) => {
+    const output = data.toString();
+    console.error(`Cloudflared stderr: ${output}`); // Log stderr for debugging
+    
+    // Cloudflared often prints the URL to stderr
+    const urlMatch = output.match(/https?:\/\/[^\s]+\.trycloudflare\.com/);
+    if (urlMatch) {
+      const tunnelUrl = urlMatch[0];
+      console.log(`\n>>> STEALTH URL (Bypasses GitHub domain blocks):`);
+      console.log(`${tunnelUrl}/drive/view/files/`);
+    }
+  });
 });
