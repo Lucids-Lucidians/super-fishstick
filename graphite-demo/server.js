@@ -45,17 +45,26 @@ app.listen(port, async () => {
     const [ltRes, ipifyRes] = await Promise.all([
       axios.get('https://localtunnel.me/ip').catch(() => null),
       axios.get('https://api.ipify.org').catch(() => null)
+    const [ltRes, icanhazipRes] = await Promise.all([
+      axios.get('https://localtunnel.me/ip').catch(() => ({ data: null })),
+      axios.get('https://ipv4.icanhazip.com').catch(() => ({ data: null }))
     ]);
 
     const ip = ltRes && ltRes.data ? ltRes.data.ip : null;
     const altIp = ipifyRes && ipifyRes.data ? String(ipifyRes.data).trim() : null;
     const finalIp = ip || altIp || 'Error fetching IP';
+    const ltIp = ltRes.data ? ltRes.data.ip : null;
+    const icanIp = icanhazipRes.data ? String(icanhazipRes.data).trim() : null;
+    const ip = ltIp || icanIp || 'Error fetching IP';
 
     console.log('\n' + '='.repeat(60));
     console.log(`>>> STEALTH URL:     \x1b[1;4;35m${tunnel.url}\x1b[0m`);
     console.log(`>>> TUNNEL PASSWORD: \x1b[1;33m${finalIp}\x1b[0m`);
     if (altIp && ip && altIp !== ip) {
       console.log(`>>> ALT PASSWORD:    \x1b[1;33m${altIp}\x1b[0m`);
+    console.log(`>>> TUNNEL PASSWORD: \x1b[1;33m${ip}\x1b[0m`);
+    if (icanIp && icanIp !== ip) {
+      console.log(`>>> ALT PASSWORD:    \x1b[1;33m${icanIp}\x1b[0m`);
     }
     console.log('='.repeat(60) + '\n');
 
